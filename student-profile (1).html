@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile - SMPS Qamber</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/responsive.css" rel="stylesheet">
+  <link href="css/print.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app-wrapper">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-content">
+      <header class="topbar" id="topbar"></header>
+      <main class="content-area">
+        <div id="profileContent">
+          <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/demo-data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!Auth.requirePermission('students', 'view')) return;
+      seedDemoData();
+      initLayout('students', 'Student Profile');
+      const id = new URLSearchParams(window.location.search).get('id');
+      if (!id) {
+        document.getElementById('profileContent').innerHTML = '<div class="alert alert-warning">No student selected. <a href="students.html">Go to Students</a></div>';
+        return;
+      }
+      const s = SMS.getById('students', id);
+      if (!s) {
+        document.getElementById('profileContent').innerHTML = '<div class="alert alert-danger">Student not found.</div>';
+        return;
+      }
+      const att = SMS.getData('attendance').filter(a => a.studentId === id);
+      const present = att.filter(a => a.status === 'Present').length;
+      const totalAtt = att.length || 1;
+      const fees = SMS.getData('feePayments').filter(f => f.studentId === id);
+      const results = SMS.getData('results').filter(r => r.studentId === id);
+      const parent = s.parentId ? SMS.getById('parents', s.parentId) : null;
+
+      document.getElementById('profileContent').innerHTML = `
+        <div class="profile-header">
+          <div class="d-flex align-items-center gap-4 flex-wrap">
+            <div class="profile-avatar"><i class="fas fa-user-graduate"></i></div>
+            <div>
+              <h3 class="mb-1">${s.name}</h3>
+              <p class="mb-1 opacity-75">${s.admissionNo} · ${s.className} - ${s.sectionName} · Roll ${s.rollNo || '-'}</p>
+              <p class="mb-0 opacity-75">${s.gender} · ${formatDate(s.dob)}</p>
+            </div>
+            <div class="ms-auto no-print">
+              <button class="btn btn-light btn-sm me-2" onclick="printPage()"><i class="fas fa-print me-1"></i>Print</button>
+              <a href="students.html" class="btn btn-outline-light btn-sm">Back</a>
+            </div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header">Basic Information</div>
+              <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                  <tr><td class="text-muted">Father's Name</td><td class="fw-semibold">${s.fatherName || '-'}</td></tr>
+                  <tr><td class="text-muted">Mother's Name</td><td class="fw-semibold">${s.motherName || '-'}</td></tr>
+                  <tr><td class="text-muted">Phone</td><td>${s.phone || '-'}</td></tr>
+                  <tr><td class="text-muted">Email</td><td>${s.email || '-'}</td></tr>
+                  <tr><td class="text-muted">Address</td><td>${s.address || '-'}, ${s.city || ''}</td></tr>
+                  <tr><td class="text-muted">Blood Group</td><td>${s.bloodGroup || '-'}</td></tr>
+                  <tr><td class="text-muted">Admission Date</td><td>${formatDate(s.admissionDate)}</td></tr>
+                  <tr><td class="text-muted">Status</td><td>${getStatusBadge(s.status)}</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header">Attendance Summary</div>
+              <div class="card-body">
+                <div class="mb-2">Present: <strong>${present}</strong> / ${att.length} days</div>
+                <div class="progress mb-3" style="height:12px">
+                  <div class="progress-bar bg-success" style="width:${Math.round(present/totalAtt*100)}%"></div>
+                </div>
+                <p class="mb-0">Attendance Rate: <strong>${Math.round(present/totalAtt*100)}%</strong></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Fee Status</div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead><tr><th>Month</th><th>Amount</th><th>Paid</th><th>Status</th></tr></thead>
+                    <tbody>
+                      ${fees.length ? fees.map(f => `<tr><td>${f.month}</td><td>${formatCurrency(f.amount)}</td><td>${formatCurrency(f.paidAmount)}</td><td>${getStatusBadge(f.status)}</td></tr>`).join('') : '<tr><td colspan="4" class="text-center text-muted">No fee records</td></tr>'}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Exam Results</div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead><tr><th>Exam</th><th>Subject</th><th>Marks</th><th>Grade</th></tr></thead>
+                    <tbody>
+                      ${results.length ? results.map(r => `<tr><td>${r.examName}</td><td>${r.subjectName}</td><td>${r.obtainedMarks}/${r.totalMarks}</td><td>${r.grade}</td></tr>`).join('') : '<tr><td colspan="4" class="text-center text-muted">No results</td></tr>'}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html>
