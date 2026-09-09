@@ -1,0 +1,30 @@
+@media print {
+  .sidebar,
+  .topbar,
+  .btn,
+  .no-print,
+  .sidebar-toggle,
+  .toast-container,
+  .modal {
+    display: none !important;
+  }
+  .main-content {
+    margin-left: 0 !important;
+  }
+  .content-area {
+    padding: 0 !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .report-card,
+  .receipt {
+    border: 2px solid #000 !important;
+    page-break-inside: avoid;
+  }
+  a { text-decoration: none !important; color: #000 !important; }
+}
