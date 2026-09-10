@@ -283,6 +283,21 @@ function printPage() {
   window.print();
 }
 
+function addWhatsAppButton() {
+  if (document.querySelector('.whatsapp-float')) return;
+  const a = document.createElement('a');
+  a.href = 'https://wa.me/923362506588?text=' + encodeURIComponent('Assalamualaikum! THE SMART MODERN PUBLIC SCHOOL QAMBER se rabta karna hai.');
+  a.className = 'whatsapp-float';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.title = 'Chat on WhatsApp';
+  a.setAttribute('aria-label', 'Chat on WhatsApp');
+  a.innerHTML = '<i class="fab fa-whatsapp"></i>';
+  document.body.appendChild(a);
+}
+
+
+
 // Initialize demo data on first load
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof seedDemoData === 'function') {
@@ -298,3 +313,4 @@ window.getStatusBadge = getStatusBadge;
 window.initLayout = initLayout;
 window.exportToCSV = exportToCSV;
 window.printPage = printPage;
+window.addWhatsAppButton = addWhatsAppButton;
