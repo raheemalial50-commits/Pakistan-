@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const feePayments = SMS.getData('feePayments');
   const totalCollected = feePayments.reduce((s, p) => s + (p.paidAmount || 0), 0);
   const totalPending = feePayments.reduce((s, p) => s + (p.remainingAmount || 0), 0);
-  const admissions = SMS.getData('admissions');
   const exams = SMS.getData('exams').filter(e => e.status === 'upcoming');
   const notices = SMS.getData('notices').slice(0, 5);
 
@@ -49,35 +48,130 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   `).join('');
 
-  // Charts
+  // Common chart options
+  const chartOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { padding: 16, usePointStyle: true, pointStyle: 'circle', font: { size: 12 } }
+      },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        padding: 10,
+        cornerRadius: 8
+      }
+    }
+  };
+
+  // 1. Gender Chart - Doughnut with percentage labels
+  const genderTotal = boys + girls || 1;
   new Chart(document.getElementById('genderChart'), {
     type: 'doughnut',
     data: {
-      labels: ['Boys', 'Girls'],
-      datasets: [{ data: [boys, girls], backgroundColor: ['#3b82f6', '#ec4899'], borderWidth: 0 }]
+      labels: [`Boys (${boys})`, `Girls (${girls})`],
+      datasets: [{
+        data: [boys || 0.001, girls || 0.001],
+        backgroundColor: ['#3b82f6', '#ec4899'],
+        borderWidth: 3,
+        borderColor: '#fff',
+        hoverOffset: 8
+      }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    options: {
+      ...chartOpts,
+      cutout: '65%',
+      plugins: {
+        ...chartOpts.plugins,
+        tooltip: {
+          ...chartOpts.plugins.tooltip,
+          callbacks: {
+            label: (ctx) => {
+              const val = Math.round(ctx.raw);
+              const pct = Math.round((val / genderTotal) * 100);
+              return ` ${ctx.label}: ${val} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
   });
 
+  // 2. Attendance Chart - Horizontal Bar (clearer pattern)
   new Chart(document.getElementById('attendanceChart'), {
-    type: 'doughnut',
+    type: 'bar',
     data: {
       labels: ['Present', 'Absent', 'Leave'],
-      datasets: [{ data: [present, absent, leave], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 0 }]
+      datasets: [{
+        label: 'Students',
+        data: [present, absent, leave],
+        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+        borderRadius: 8,
+        borderSkipped: false,
+        barThickness: 28
+      }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          padding: 10,
+          cornerRadius: 8
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 },
+          grid: { color: '#f1f5f9' }
+        },
+        y: {
+          grid: { display: false }
+        }
+      }
+    }
   });
 
+  // 3. Fee Chart - Doughnut with better style
   const paidCount = feePayments.filter(p => p.status === 'Paid').length;
   const partialCount = feePayments.filter(p => p.status === 'Partial').length;
   const pendingCount = feePayments.filter(p => p.status === 'Pending').length;
+  const feeTotal = paidCount + partialCount + pendingCount || 1;
+
   new Chart(document.getElementById('feeChart'), {
     type: 'doughnut',
     data: {
-      labels: ['Paid', 'Partial', 'Pending'],
-      datasets: [{ data: [paidCount, partialCount, pendingCount], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }]
+      labels: [`Paid (${paidCount})`, `Partial (${partialCount})`, `Pending (${pendingCount})`],
+      datasets: [{
+        data: [paidCount || 0.001, partialCount || 0.001, pendingCount || 0.001],
+        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+        borderWidth: 3,
+        borderColor: '#fff',
+        hoverOffset: 8
+      }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    options: {
+      ...chartOpts,
+      cutout: '60%',
+      plugins: {
+        ...chartOpts.plugins,
+        tooltip: {
+          ...chartOpts.plugins.tooltip,
+          callbacks: {
+            label: (ctx) => {
+              const val = Math.round(ctx.raw);
+              const pct = Math.round((val / feeTotal) * 100);
+              return ` ${ctx.label}: ${pct}%`;
+            }
+          }
+        }
+      }
+    }
   });
 
   // Notices
