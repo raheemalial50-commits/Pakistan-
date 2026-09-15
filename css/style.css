@@ -106,14 +106,21 @@ body {
   border-bottom: 1px solid #1e293b;
 }
 .school-logo {
-  width: 42px;
-  height: 42px;
-  background: var(--primary);
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  border: 2px solid rgba(255,255,255,0.25);
+}
+.school-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .school-info h6 { color: #fff; font-weight: 600; }
 .school-info small { color: #94a3b8; font-size: 0.7rem; }
