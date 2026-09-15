@@ -129,7 +129,7 @@ function renderSidebar(activePage = '') {
   let html = `
     <div class="sidebar-header">
       <div class="school-logo">
-        <i class="fas fa-graduation-cap"></i>
+        <img src="assets/images/logo.jpg" alt="School Logo">
       </div>
       <div class="school-info">
         <h6 class="mb-0">SMPS Qamber</h6>
